@@ -76,34 +76,51 @@ endclass.
 class tester implementation.
   method addition1.
 
-    data: test_a type i.
-    data: test_b type i.
-    data: test_c type i.
-    data: exp_c type i.
-    data: test_ref1 type ref to sub_class.
-
 * テスト値をセットする
-    test_a = 10.
-    test_b = 20.
-    exp_c = 39.
+    data(test_a_wrong) = 10.
+    data(test_b_wrong) = 20.
+    data(test_c_wrong) = 0.
+    data(exp_c_wrong) = 30.
+    data(test_a_correct) = 40.
+    data(test_b_correct) = 50.
+    data(test_c_correct) = 0.
+    data(exp_c_correct) = 100.
+    data: test_ref1_wrong type ref to sub_class.
+    data: test_ref2_correct type ref to sub_class.
 
 * テスト対象のオブジェクトをインスタンス化する
-    create object test_ref1.
+    create object test_ref1_wrong.
+    create object test_ref2_correct.
 
-    call method test_ref1->addition1
+    call method test_ref1_wrong->addition1
       exporting
-        g_a = test_a
-        g_b = test_b
+        g_a = test_a_wrong
+        g_b = test_b_wrong
       importing
-        g_c = test_c.
+        g_c = test_c_wrong.
 
 * テスト結果を評価して、OK or NGを決定し結果出力を行う
     cl_abap_unit_assert=>assert_equals(
       exporting
-        act = test_c
-        exp = exp_c
+        act = test_c_wrong
+        exp = exp_c_wrong
         msg = 'ADDITION1 FUNCTION NOT WORKING'
-        quit =  if_aunit_constants=>quit-test
+        quit =  0
+    ).
+
+    call method test_ref2_correct->addition1
+      exporting
+        g_a = test_a_correct
+        g_b = test_b_correct
+      importing
+        g_c = test_c_correct.
+
+    cl_abap_unit_assert=>assert_equals(
+      exporting
+        act = test_c_correct
+        exp = exp_c_correct
+        msg = 'ADDITION1 FUNCTION NOT WORKING'
+        quit =  0
     ).
 
   endmethod.
