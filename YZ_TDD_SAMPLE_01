@@ -1,0 +1,110 @@
+*---------------------------------------------------------
+* ABAP UNIT TEST TARGET COMPONENTS
+*---------------------------------------------------------
+
+report yz_tdd_sample_01.
+
+* スーパークラスでパラメーターを設定
+class super_class definition.
+  public section.
+    methods: addition1 importing g_a type i
+                                 g_b type i
+                       exporting g_c type i.
+endclass.
+
+class super_class implementation.
+  method: addition1.
+    g_c = g_a + g_b.
+  endmethod.
+endclass.
+
+* サブクラスを設定。パラメーターは、スーパークラスのものを使用
+class sub_class definition inheriting from super_class.
+  public section.
+    methods: addition1 redefinition.
+endclass.
+
+* メソッドはサブクラスで再実装を行う
+class sub_class implementation.
+  method addition1.
+    g_c = g_a + g_b + 10.
+  endmethod.
+endclass.
+
+******************************************
+start-of-selection.
+******************************************
+
+* 画面定義
+  parameters: p_a type i,
+              p_b type i.
+
+* 変数定義
+  data: h_addition1 type i.
+  data: h_sub type i.
+
+*サブクラス参照
+  data: ref1 type ref to sub_class.
+
+* オブジェクト生成(サブクラス)
+  create object ref1.
+
+* サブクラスのメソッドを使用
+  call method ref1->addition1
+    exporting
+      g_a = p_a
+      g_b = p_b
+    importing
+      g_c = h_addition1.
+*結果出力
+  write:/ h_addition1.
+
+*---------------------------------------------------------
+* ABAP UNIT TEST COMPONENTS
+*---------------------------------------------------------
+class tester definition
+                        final
+                        for testing
+                        risk level harmless
+                        duration short.
+
+  private section.
+    methods: addition1 for testing.
+
+endclass.
+
+class tester implementation.
+  method addition1.
+
+    data: test_a type i.
+    data: test_b type i.
+    data: test_c type i.
+    data: exp_c type i.
+    data: test_ref1 type ref to sub_class.
+
+* テスト値をセットする
+    test_a = 10.
+    test_b = 20.
+    exp_c = 39.
+
+* テスト対象のオブジェクトをインスタンス化する
+    create object test_ref1.
+
+    call method test_ref1->addition1
+      exporting
+        g_a = test_a
+        g_b = test_b
+      importing
+        g_c = test_c.
+
+* テスト結果を評価して、OK or NGを決定し結果出力を行う
+    cl_abap_unit_assert=>assert_equals(
+      exporting
+        act = test_c
+        exp = exp_c
+        msg = 'ADDITION1 FUNCTION NOT WORKING'
+        quit =  if_aunit_constants=>quit-test
+    ).
+
+  endmethod.
+endclass.
